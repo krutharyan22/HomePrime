@@ -8,14 +8,22 @@ import { motion } from 'framer-motion';
 export default function Home() {
   const router = useRouter();
 
+  const { user, community, isLoading } = useApp();
+
   useEffect(() => {
-    // Small delay to show the landing animation before redirecting to login
-    // In a real app, this would be a full landing page
+    if (isLoading) return;
+
     const timer = setTimeout(() => {
-      router.push('/auth/login');
-    }, 3000);
+      if (!user) {
+        router.push('/auth/login');
+      } else if (!community) {
+        router.push('/onboarding/community');
+      } else {
+        router.push('/dashboard');
+      }
+    }, 2500);
     return () => clearTimeout(timer);
-  }, [router]);
+  }, [user, community, isLoading, router]);
 
   return (
     <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-6 text-center overflow-hidden">

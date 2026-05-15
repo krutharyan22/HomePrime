@@ -30,7 +30,12 @@ export default function LoginPage() {
             if (response.ok) {
                 const userData = await response.json();
                 setUser(userData);
-                router.push('/onboarding/community');
+                if (userData.communityId) {
+                    router.push('/dashboard');
+                } else {
+                    router.push('/onboarding/community');
+                }
+
             } else if (response.status === 404) {
                 setError('Account not found. Please register to continue.');
             } else {

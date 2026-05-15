@@ -14,8 +14,15 @@ export default function CommunitySelectionPage() {
     const [selectedId, setSelectedId] = useState<string | null>(null);
     const [isJoining, setIsJoining] = useState(false);
     const [communities, setCommunities] = useState<Community[]>([]);
-    const { setCommunity, setUser, user } = useApp();
+    const { setCommunity, setUser, user, community } = useApp();
     const router = useRouter();
+
+    // Skip onboarding if community is already selected
+    React.useEffect(() => {
+        if (community) {
+            router.push('/dashboard');
+        }
+    }, [community, router]);
 
     React.useEffect(() => {
         const fetchCommunities = async () => {

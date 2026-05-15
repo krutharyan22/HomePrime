@@ -93,8 +93,8 @@ export default function SecurityDashboard() {
                             <p className="text-xs font-black uppercase tracking-widest leading-none mb-1">{user.name}</p>
                             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Security ID: HP-3402</p>
                         </div>
-                        <div className="w-10 h-10 rounded-xl overflow-hidden border-2 border-slate-700">
-                            <Image src={user.avatar || 'https://i.pravatar.cc/150?u=security'} alt="Avatar" width={40} height={40} className="object-cover" />
+                        <div className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center border-2 border-slate-700 shadow-sm">
+                            <ShieldCheck className="w-6 h-6 text-emerald-500" />
                         </div>
                     </div>
                     <button

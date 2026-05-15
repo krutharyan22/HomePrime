@@ -29,7 +29,12 @@ export default function SignupPage() {
             if (res.ok) {
                 const data = await res.json();
                 setUser(data);
-                router.push('/onboarding/community');
+                if (data.communityId) {
+                    router.push('/dashboard');
+                } else {
+                    router.push('/onboarding/community');
+                }
+
             } else {
                 const error = await res.json();
                 alert(error.message || 'Signup failed');
@@ -55,7 +60,7 @@ export default function SignupPage() {
                 className="relative w-full max-w-md"
             >
                 <div className="bg-slate-900/50 backdrop-blur-xl border border-slate-800 rounded-3xl p-8 shadow-2xl">
-                    <div className="flex flex-col items-center mb-10">
+                    <div className="flex flex-col items-center mb-8">
                         <div className="w-16 h-16 bg-gradient-to-tr from-indigo-500 to-emerald-500 rounded-2xl flex items-center justify-center shadow-lg mb-4">
                             <Building2 className="text-white w-10 h-10" />
                         </div>
