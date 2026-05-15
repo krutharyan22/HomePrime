@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Building2, ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useApp } from '@/lib/context';
 
 export default function Home() {
   const router = useRouter();

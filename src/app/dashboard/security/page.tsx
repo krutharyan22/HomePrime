@@ -112,7 +112,7 @@ export default function SecurityDashboard() {
                 <div className="lg:col-span-8 space-y-6">
                     <div className="bg-white border-4 border-slate-200 rounded-[2.5rem] p-10 shadow-sm relative overflow-hidden">
                         <div className="absolute top-0 right-0 p-8 opacity-5">
-                            < स्मार्टफोन className="w-32 h-32" />
+                            <Smartphone className="w-32 h-32" />
                         </div>
 
                         <div className="mb-10">
@@ -270,5 +270,3 @@ export default function SecurityDashboard() {
     );
 }
 
-// Helper to fix the smartphone icon duplicate issue in code (typo in my plan)
-const स्मार्टफोन = Smartphone;
