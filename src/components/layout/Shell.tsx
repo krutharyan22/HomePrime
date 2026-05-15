@@ -200,10 +200,13 @@ export default function Shell({ children }: { children: React.ReactNode }) {
                 </header>
 
                 {/* Page Content */}
-                <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-10 bg-slate-50/50">
-                    <div className="max-w-7xl mx-auto">
+                <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-10 bg-slate-50/50 flex flex-col">
+                    <div className="max-w-7xl mx-auto flex-1 w-full">
                         {children}
                     </div>
+                    <footer className="mt-auto py-8 text-center text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] opacity-50">
+                        © {new Date().getFullYear()} Kruth Aryan All Rights Reserved
+                    </footer>
                 </div>
             </main>
         </div>
