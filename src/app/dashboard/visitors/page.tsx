@@ -2,55 +2,99 @@
 
 import React, { useState } from 'react';
 import Shell from '@/components/layout/Shell';
-import { Users, UserPlus, QrCode, ShieldCheck, Clock, MapPin, X, ArrowRight, Loader2 } from 'lucide-react';
+import { useApp } from '@/lib/context';
+import { UserPlus, QrCode, ShieldCheck, Clock, MapPin, X, ArrowRight, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
+interface VisitorPass {
+    _id: string;
+    id?: string;
+    userId: string;
+    name: string;
+    type: string;
+    code: string;
+    expiresAt: string;
+    status: string;
+}
+
 export default function VisitorsPage() {
+    const { user } = useApp();
     const [isGenerating, setIsGenerating] = useState(false);
     const [showPass, setShowPass] = useState(false);
     const [vType, setVType] = useState('Guest');
     const [vName, setVName] = useState('');
+    const [activePasses, setActivePasses] = useState<VisitorPass[]>([]);
+    const [newPassCode, setNewPassCode] = useState('');
 
-    const activePasses = [
-        { id: 'v1', name: 'Mark Wilson', type: 'Guest', expiresAt: 'Today, 11 PM', code: 'HS-9283' },
-        { id: 'v2', name: 'Zomato Delivery', type: 'Delivery', expiresAt: 'Today, 2 PM', code: 'HS-1044' },
-    ];
+    React.useEffect(() => {
+        const fetchPasses = async () => {
+            if (!user) return;
+            try {
+                const res = await fetch(`/api/visitors?userId=${user._id}`);
+                const data = await res.json();
+                setActivePasses(data);
+            } catch (error) {
+                console.error('Failed to fetch passes:', error);
+            }
+        };
+        fetchPasses();
+    }, [user]);
 
-    const handleGenerate = (e: React.FormEvent) => {
+    const handleGenerate = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!user) return;
         setIsGenerating(true);
-        setTimeout(() => {
+        try {
+            const res = await fetch('/api/visitors', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    userId: user._id,
+                    name: vName,
+                    type: vType,
+                    expiresAt: new Date(Date.now() + 86400000).toISOString(), // 24h from now
+                }),
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                setNewPassCode(data.code);
+                setActivePasses(prev => [data, ...prev]);
+                setShowPass(true);
+            }
+        } catch (error) {
+            console.error('Pass generation failed:', error);
+        } finally {
             setIsGenerating(false);
-            setShowPass(true);
-        }, 1500);
+        }
     };
 
     return (
         <Shell>
             <div className="mb-10">
-                <h1 className="text-3xl font-bold text-white mb-2 font-outfit">Visitor Management</h1>
-                <p className="text-slate-400">Pre-approve guests and generate instant digital entry passes.</p>
+                <h1 className="text-3xl font-bold text-slate-900 mb-2 font-outfit">Visitor Management</h1>
+                <p className="text-slate-500 font-medium">Pre-approve guests and generate instant digital entry passes.</p>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Pass Generation Form */}
                 <div className="lg:col-span-2 space-y-8">
-                    <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8">
-                        <h2 className="text-xl font-bold text-white mb-8 flex items-center gap-3">
-                            <UserPlus className="text-indigo-400 w-6 h-6" />
+                    <div className="bg-white border border-slate-200 rounded-3xl p-8 shadow-sm">
+                        <h2 className="text-xl font-bold text-slate-900 mb-8 flex items-center gap-3 font-outfit">
+                            <UserPlus className="text-indigo-600 w-6 h-6" />
                             Express Entry Pass
                         </h2>
                         <form onSubmit={handleGenerate} className="space-y-6">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-2">
-                                    <label className="text-sm font-medium text-slate-300">Visitor Type</label>
+                                    <label className="text-sm font-bold text-slate-500 uppercase tracking-wider text-[10px]">Visitor Type</label>
                                     <div className="flex gap-2">
                                         {['Guest', 'Delivery', 'Cab'].map(type => (
                                             <button
                                                 key={type}
                                                 type="button"
                                                 onClick={() => setVType(type)}
-                                                className={`flex-1 py-3 rounded-xl border text-sm font-bold transition-all ${vType === type ? 'bg-indigo-600 border-indigo-500 text-white shadow-lg shadow-indigo-600/20' : 'bg-slate-800 border-slate-700 text-slate-400 hover:bg-slate-700'
+                                                className={`flex-1 py-3 rounded-xl border text-sm font-bold transition-all ${vType === type ? 'bg-indigo-600 border-indigo-500 text-white shadow-lg shadow-indigo-600/20' : 'bg-slate-50 border-slate-200 text-slate-500 hover:bg-slate-100'
                                                     }`}
                                             >
                                                 {type}
@@ -59,13 +103,13 @@ export default function VisitorsPage() {
                                     </div>
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-sm font-medium text-slate-300">Visitor Name</label>
+                                    <label className="text-sm font-bold text-slate-500 uppercase tracking-wider text-[10px]">Visitor Name</label>
                                     <input
                                         required
                                         value={vName}
                                         onChange={(e) => setVName(e.target.value)}
                                         type="text"
-                                        className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 font-medium placeholder:text-slate-400"
                                         placeholder="e.g. Robert Smith"
                                     />
                                 </div>
@@ -91,15 +135,15 @@ export default function VisitorsPage() {
                     </div>
 
                     {/* Guidelines */}
-                    <div className="bg-slate-900/50 border border-slate-800 rounded-3xl p-6">
+                    <div className="bg-indigo-50 border border-indigo-100 rounded-3xl p-6 shadow-sm">
                         <div className="flex items-start gap-4">
-                            <div className="p-3 bg-emerald-500/10 rounded-2xl">
-                                <ShieldCheck className="text-emerald-500 w-6 h-6" />
+                            <div className="p-3 bg-indigo-600 rounded-2xl">
+                                <ShieldCheck className="text-white w-6 h-6" />
                             </div>
                             <div>
-                                <h4 className="text-white font-bold mb-1 font-outfit">Security Protocol</h4>
-                                <p className="text-slate-400 text-xs leading-relaxed uppercase tracking-widest font-bold">Automatic Notification to Guard Cabin at Main Gate</p>
-                                <p className="text-slate-500 text-sm mt-2 font-medium">Pre-approved visitors bypass manual registration. Instant entry for deliveries and verified guests.</p>
+                                <h4 className="text-indigo-900 font-bold mb-1 font-outfit uppercase tracking-tighter">Security Protocol</h4>
+                                <p className="text-indigo-700/70 text-xs leading-relaxed uppercase tracking-widest font-bold">Automatic Notification to Guard Cabin</p>
+                                <p className="text-indigo-700/60 text-sm mt-2 font-medium">Pre-approved visitors bypass manual registration. Instant entry for deliveries and verified guests.</p>
                             </div>
                         </div>
                     </div>
@@ -107,29 +151,29 @@ export default function VisitorsPage() {
 
                 {/* Active Passes Sidebar */}
                 <div className="space-y-8">
-                    <div className="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden">
-                        <div className="p-6 border-b border-slate-800 bg-slate-800/30">
-                            <h3 className="text-white font-bold flex items-center gap-2">
-                                <Clock className="text-indigo-400 w-5 h-5" />
+                    <div className="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm">
+                        <div className="p-6 border-b border-slate-100 bg-slate-50">
+                            <h3 className="text-slate-900 font-bold flex items-center gap-2 font-outfit">
+                                <Clock className="text-indigo-600 w-5 h-5" />
                                 Active Passes
                             </h3>
                         </div>
-                        <div className="divide-y divide-slate-800">
+                        <div className="divide-y divide-slate-100">
                             {activePasses.map(pass => (
-                                <div key={pass.id} className="p-6">
+                                <div key={pass.id} className="p-6 hover:bg-slate-50 transition-colors">
                                     <div className="flex justify-between items-start mb-4">
                                         <div>
-                                            <h4 className="text-white font-bold">{pass.name}</h4>
-                                            <span className="text-[10px] uppercase font-bold text-indigo-400 tracking-tighter bg-indigo-500/10 px-2 py-0.5 rounded-full">{pass.type}</span>
+                                            <h4 className="text-slate-900 font-bold">{pass.name}</h4>
+                                            <span className="text-[10px] uppercase font-bold text-indigo-600 tracking-wider bg-indigo-50 px-2 py-0.5 rounded-full">{pass.type}</span>
                                         </div>
                                         <div className="text-right">
-                                            <p className="text-xs text-slate-500 font-bold uppercase mb-1">Pass Code</p>
-                                            <p className="text-emerald-400 font-mono font-bold">{pass.code}</p>
+                                            <p className="text-[10px] text-slate-400 font-bold uppercase mb-1 tracking-widest">Code</p>
+                                            <p className="text-emerald-600 font-mono font-black">{pass.code}</p>
                                         </div>
                                     </div>
-                                    <div className="flex items-center justify-between text-[11px] font-bold text-slate-500 uppercase">
-                                        <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> Expires: {pass.expiresAt}</span>
-                                        <button className="text-rose-400 hover:text-rose-300 transition-colors">Revoke</button>
+                                    <div className="flex items-center justify-between text-[11px] font-bold text-slate-400 uppercase tracking-tighter">
+                                        <span className="flex items-center gap-1 font-medium"><Clock className="w-3 h-3 text-indigo-500" /> Expires: {new Date(pass.expiresAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                        <button className="text-rose-500 hover:text-rose-600 transition-colors font-bold">Revoke</button>
                                     </div>
                                 </div>
                             ))}
@@ -183,7 +227,7 @@ export default function VisitorsPage() {
                                     </div>
                                     <div className="text-right text-indigo-600">
                                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Entry Code</p>
-                                        <p className="text-xl font-mono font-black">HS-7729</p>
+                                        <p className="text-xl font-mono font-black">{newPassCode}</p>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-3 text-slate-500 bg-slate-50 p-4 rounded-2xl">

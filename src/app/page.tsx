@@ -34,7 +34,7 @@ export default function Home() {
         </div>
 
         <h1 className="text-6xl md:text-8xl font-black text-white mb-6 font-outfit tracking-tighter">
-          Home<span className="text-indigo-500">Sphere.</span>
+          Home<span className="text-indigo-500">Prime.</span>
         </h1>
 
         <p className="text-slate-400 text-xl md:text-2xl max-w-2xl mx-auto leading-relaxed mb-12">

@@ -14,7 +14,7 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  title: "HomeSphere | Modern Apartment Management",
+  title: "HomePrime | Modern Apartment Management",
   description: "Eliminate the friction of apartment living through transparency and one-click service requests.",
 };
 

@@ -12,6 +12,7 @@ export default function LoginPage() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
     const { setUser } = useApp();
     const router = useRouter();
 
@@ -30,12 +31,14 @@ export default function LoginPage() {
                 const userData = await response.json();
                 setUser(userData);
                 router.push('/onboarding/community');
+            } else if (response.status === 404) {
+                setError('Account not found. Please register to continue.');
             } else {
-                alert('Login failed. Please check your credentials.');
+                setError('Invalid email or password. Please try again.');
             }
         } catch (error) {
             console.error('Login error:', error);
-            alert('An error occurred during login.');
+            setError('An error occurred. Please check your connection.');
         } finally {
             setLoading(false);
         }
@@ -58,9 +61,15 @@ export default function LoginPage() {
                         <div className="w-16 h-16 bg-gradient-to-tr from-indigo-500 to-emerald-500 rounded-2xl flex items-center justify-center shadow-lg mb-4">
                             <Building2 className="text-white w-10 h-10" />
                         </div>
-                        <h1 className="text-3xl font-bold text-white tracking-tight">HomeSphere</h1>
+                        <h1 className="text-3xl font-bold text-indigo-600 tracking-tight">HomePrime</h1>
                         <p className="text-slate-400 mt-2">Welcome back, neighbor</p>
                     </div>
+
+                    {error && (
+                        <div className="mb-6 p-4 bg-rose-500/10 border border-rose-500/20 rounded-2xl text-rose-400 text-sm text-center font-medium">
+                            {error}
+                        </div>
+                    )}
 
                     <form onSubmit={handleLogin} className="space-y-6">
                         <div className="space-y-2">

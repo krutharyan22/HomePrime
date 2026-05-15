@@ -16,14 +16,30 @@ export default function SignupPage() {
     const { setUser } = useApp();
     const router = useRouter();
 
-    const handleSignup = (e: React.FormEvent) => {
+    const handleSignup = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
-        // Simulate API call
-        setTimeout(() => {
-            setUser({ ...MOCK_USER, name, email });
-            router.push('/onboarding/community');
-        }, 1500);
+        try {
+            const res = await fetch('/api/auth/signup', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, email, password }),
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                setUser(data);
+                router.push('/onboarding/community');
+            } else {
+                const error = await res.json();
+                alert(error.message || 'Signup failed');
+            }
+        } catch (error) {
+            console.error('Signup error:', error);
+            alert('Something went wrong. Please try again.');
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (

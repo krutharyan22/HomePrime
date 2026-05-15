@@ -1,4 +1,4 @@
-import mongoose, { Schema, model, models } from 'mongoose';
+import { Schema, model, models } from 'mongoose';
 
 // User Schema
 const UserSchema = new Schema({
@@ -7,7 +7,7 @@ const UserSchema = new Schema({
   password: { type: String, required: true },
   communityId: { type: Schema.Types.ObjectId, ref: 'Community' },
   unitNumber: String,
-  role: { type: String, enum: ['resident', 'admin'], default: 'resident' },
+  role: { type: String, enum: ['resident', 'admin', 'security'], default: 'resident' },
   avatar: String,
 }, { timestamps: true });
 
@@ -64,9 +64,25 @@ const NoticeSchema = new Schema({
   isPinned: { type: Boolean, default: false },
 }, { timestamps: true });
 
+// VisitorPass Schema
+const VisitorPassSchema = new Schema({
+  userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+  name: { type: String, required: true },
+  type: { type: String, enum: ['Guest', 'Delivery', 'Cab'], required: true },
+  expiresAt: { type: Date, required: true },
+  code: { type: String, required: true },
+  status: { type: String, enum: ['Active', 'Revoked', 'Expired'], default: 'Active' },
+}, { timestamps: true });
+
+// In development, clear cached models to ensure schema changes are applied
+if (process.env.NODE_ENV === 'development') {
+  Object.keys(models).forEach(key => delete models[key]);
+}
+
 export const User = models.User || model('User', UserSchema);
 export const Community = models.Community || model('Community', CommunitySchema);
 export const Complaint = models.Complaint || model('Complaint', ComplaintSchema);
 export const Payment = models.Payment || model('Payment', PaymentSchema);
 export const Booking = models.Booking || model('Booking', BookingSchema);
 export const Notice = models.Notice || model('Notice', NoticeSchema);
+export const VisitorPass = models.VisitorPass || model('VisitorPass', VisitorPassSchema);

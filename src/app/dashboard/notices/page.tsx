@@ -3,7 +3,7 @@
 import React from 'react';
 import Shell from '@/components/layout/Shell';
 import { MOCK_NOTICES } from '@/lib/mockData';
-import { Megaphone, Search, Filter, Bell, User, Calendar, ExternalLink, ChevronRight, Pin } from 'lucide-react';
+import { Megaphone, Search, Filter, Bell, User, Calendar, ExternalLink, Pin } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export default function NoticesPage() {

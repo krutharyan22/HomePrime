@@ -11,10 +11,15 @@ if (!MONGODB_URI) {
  * in development. This prevents connections growing exponentially
  * during API Route usage.
  */
-let cached = (global as any).mongoose;
+interface MongooseCache {
+    conn: typeof import('mongoose') | null;
+    promise: Promise<typeof import('mongoose')> | null;
+}
+
+let cached = (global as unknown as { mongoose: MongooseCache }).mongoose;
 
 if (!cached) {
-    cached = (global as any).mongoose = { conn: null, promise: null };
+    cached = (global as unknown as { mongoose: MongooseCache }).mongoose = { conn: null, promise: null };
 }
 
 async function dbConnect() {
@@ -25,20 +30,31 @@ async function dbConnect() {
     if (!cached.promise) {
         const opts = {
             bufferCommands: false,
+            serverSelectionTimeoutMS: 10000, // Increased to 10s for slow cloud connections
+            connectTimeoutMS: 15000,
         };
 
-        if (MONGODB_URI.includes('cluster0.mongodb.net')) {
-            console.log('📡 Connecting to MongoDB Atlas...');
-        } else {
-            console.log('📡 Connecting to Local MongoDB...');
-        }
+        const isAtlas = MONGODB_URI.includes('cluster0.mongodb.net') || MONGODB_URI.includes('+srv');
+        
+        console.log(`📡 Attempting to connect to ${isAtlas ? 'MongoDB Atlas' : 'Local MongoDB'}...`);
 
         cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongoose) => {
             console.log('✅ MongoDB Connected Successfully');
             return mongoose;
         }).catch((err) => {
-            console.error('❌ MongoDB Connection Error:', err.message);
-            throw err;
+            let message = err.message;
+            if (message.includes('ENOTFOUND') || message.includes('ETIMEDOUT') || message.includes('Could not connect')) {
+                message = `MongoDB Connection Failed. 
+                Possible reasons:
+                1. Your IP address is NOT whitelisted in MongoDB Atlas (visit cloud.mongodb.com).
+                2. Your internet connection is unstable.
+                3. The MONGODB_URI in .env.local is incorrect.
+                Error Detail: ${err.message}`;
+            }
+            console.error('❌ MongoDB Connection Error:', message);
+            // Reset promise so it can be retried on next request
+            cached.promise = null;
+            throw new Error(message);
         });
     }
 

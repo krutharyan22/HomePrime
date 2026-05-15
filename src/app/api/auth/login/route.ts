@@ -11,22 +11,18 @@ export async function POST(request: Request) {
         const user = await User.findOne({ email });
 
         if (!user) {
-            // Check against mock if no user found in DB (for demo purposes)
-            if (email === MOCK_USER.email) {
-                return NextResponse.json(MOCK_USER);
-            }
             return NextResponse.json({ error: 'User not found' }, { status: 404 });
         }
 
         // In a real app, compare hashed passwords. For now, simple check.
-        if (user.password === password || password === 'password123') {
-            const { password, ...userWithoutPass } = user.toObject();
+        if (user.password === password) {
+            const { password: _password, ...userWithoutPass } = user.toObject();
             return NextResponse.json(userWithoutPass);
         }
 
         return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
-    } catch (error) {
-        console.warn('Login API fallback to mock');
-        return NextResponse.json(MOCK_USER);
+    } catch (error: any) {
+        console.error('Login error:', error);
+        return NextResponse.json({ error: error.message || 'Login failed' }, { status: 500 });
     }
 }

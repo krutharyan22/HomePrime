@@ -2,26 +2,43 @@
 
 import React, { useState } from 'react';
 import Shell from '@/components/layout/Shell';
-import { MOCK_PAYMENTS } from '@/lib/mockData';
-import { CreditCard, CheckCircle2, AlertCircle, Calendar, Download, ArrowRight, Loader2 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { CreditCard, CheckCircle2, AlertCircle, Calendar, Download, Loader2 } from 'lucide-react';
+import { motion } from 'framer-motion';
+import Image from 'next/image';
+import { useApp } from '@/lib/context';
+
+interface Payment {
+    _id: string;
+    id?: string;
+    type: string;
+    amount: number;
+    dueDate: string;
+    status: string;
+}
 
 export default function FinancePage() {
-    const [payments, setPayments] = useState<any[]>([]);
+    const { user } = useApp();
+    const [payments, setPayments] = useState<Payment[]>([]);
     const [processingId, setProcessingId] = useState<string | null>(null);
 
     React.useEffect(() => {
+        if (!user) return;
         const fetchPayments = async () => {
             try {
-                const res = await fetch('/api/payments');
+                const res = await fetch(`/api/payments?userId=${(user as any).id || user._id}`);
                 const data = await res.json();
-                setPayments(data);
+                if (Array.isArray(data)) {
+                    setPayments(data);
+                } else {
+                    setPayments([]);
+                }
             } catch (error) {
                 console.error('Failed to fetch payments:', error);
+                setPayments([]);
             }
         };
         fetchPayments();
-    }, []);
+    }, [user]);
 
     const handlePay = async (id: string) => {
         setProcessingId(id);
@@ -84,7 +101,7 @@ export default function FinancePage() {
                                             </div>
                                         </td>
                                         <td className="px-6 py-5 text-slate-400">{new Date(p.dueDate).toLocaleDateString()}</td>
-                                        <td className="px-6 py-5 font-bold text-white">${p.amount}</td>
+                                        <td className="px-6 py-5 font-bold text-white">₹{p.amount}</td>
                                         <td className="px-6 py-5">
                                             {p.status === 'Paid' ? (
                                                 <div className="flex items-center gap-1.5 text-emerald-400 text-sm font-bold">
@@ -126,7 +143,7 @@ export default function FinancePage() {
                         <div className="space-y-4">
                             <div className="flex justify-between items-center text-slate-400">
                                 <span>Total Due</span>
-                                <span className="text-white font-bold">${payments.filter(p => p.status === 'Unpaid').reduce((acc, curr) => acc + curr.amount, 0)}</span>
+                                <span className="text-white font-bold">₹{payments.filter(p => p.status === 'Unpaid').reduce((acc, curr) => acc + curr.amount, 0)}</span>
                             </div>
                             <div className="flex justify-between items-center text-slate-400">
                                 <span>Next Deadline</span>
@@ -153,9 +170,9 @@ export default function FinancePage() {
                             All payments are processed through our secure, encrypted gateway. Receipt generation is instantaneous.
                         </p>
                         <div className="flex items-center gap-4 grayscale opacity-50">
-                            <img src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg" alt="Visa" className="h-4" />
-                            <img src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg" alt="Mastercard" className="h-6" />
-                            <img src="https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg" alt="PayPal" className="h-4" />
+                            <Image src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg" alt="Visa" width={40} height={16} className="h-4 w-auto" />
+                            <Image src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg" alt="Mastercard" width={40} height={24} className="h-6 w-auto" />
+                            <Image src="https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg" alt="PayPal" width={40} height={16} className="h-4 w-auto" />
                         </div>
                     </div>
                 </div>

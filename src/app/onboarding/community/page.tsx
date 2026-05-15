@@ -3,15 +3,17 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useApp } from '@/lib/context';
-import { MOCK_COMMUNITIES } from '@/lib/mockData';
-import { Search, MapPin, Building, ArrowRight, Loader2, Check } from 'lucide-react';
+import { Search, MapPin, ArrowRight, Loader2, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import Image from 'next/image';
+
+import { Community } from '@/lib/types';
 
 export default function CommunitySelectionPage() {
     const [search, setSearch] = useState('');
     const [selectedId, setSelectedId] = useState<string | null>(null);
     const [isJoining, setIsJoining] = useState(false);
-    const [communities, setCommunities] = useState<any[]>([]);
+    const [communities, setCommunities] = useState<Community[]>([]);
     const { setCommunity, setUser, user } = useApp();
     const router = useRouter();
 
@@ -39,8 +41,12 @@ export default function CommunitySelectionPage() {
         const selected = communities.find(c => (c.id === selectedId || c._id === selectedId));
 
         setTimeout(() => {
-            setCommunity(selected);
-            setUser({ ...user, communityId: selectedId });
+            if (selected) {
+                setCommunity(selected);
+                if (user) {
+                    setUser({ ...user, communityId: selectedId });
+                }
+            }
             router.push('/dashboard');
         }, 1500);
     };
@@ -81,7 +87,7 @@ export default function CommunitySelectionPage() {
                     <AnimatePresence mode="popLayout">
                         {filteredCommunities.map((c, index) => (
                             <motion.div
-                                key={c.id}
+                                key={c._id || c.id || index}
                                 layout
                                 initial={{ opacity: 0, scale: 0.9 }}
                                 animate={{ opacity: 1, scale: 1 }}
@@ -92,7 +98,7 @@ export default function CommunitySelectionPage() {
                                     }`}
                             >
                                 <div className="relative h-48 rounded-2xl overflow-hidden mb-4">
-                                    <img src={c.image} alt={c.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                                    <Image src={c.image || ''} alt={c.name} fill className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                                     <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 to-transparent" />
                                     <div className="absolute bottom-4 left-4">
                                         <div className="flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-indigo-400 mb-1">
@@ -110,12 +116,12 @@ export default function CommunitySelectionPage() {
                                 <div className="px-4 pb-4">
                                     <p className="text-slate-400 text-sm line-clamp-2 mb-4">{c.description}</p>
                                     <div className="flex flex-wrap gap-2">
-                                        {c.amenities.slice(0, 3).map((a: string) => (
+                                        {c.amenities?.slice(0, 3).map((a: string) => (
                                             <span key={a} className="text-[10px] bg-slate-800 text-slate-300 px-2 py-1 rounded-full uppercase tracking-tighter">
                                                 {a}
                                             </span>
                                         ))}
-                                        {c.amenities.length > 3 && <span className="text-[10px] text-slate-500 pt-1">+{c.amenities.length - 3} more</span>}
+                                        {c.amenities && c.amenities.length > 3 && <span className="text-[10px] text-slate-500 pt-1">+{c.amenities.length - 3} more</span>}
                                     </div>
                                 </div>
                             </motion.div>
